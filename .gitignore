@@ -10,7 +10,7 @@ __pycache__/
 .env
 *.sqlite
 *.sqlite-journal
-data/
+/data/
 
 # Node
 frontend/node_modules/
