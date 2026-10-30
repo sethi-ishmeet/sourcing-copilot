@@ -19,3 +19,6 @@ frontend/dist/
 # Test scratch output (committed reports live in reports/)
 test-results/
 playwright-report/
+
+# Editor and assistant settings
+.claude/
