@@ -242,8 +242,7 @@ class Copilot:
                     )
                     continue
 
-                update["tool_calls_made"] += 1
-                if update["tool_calls_made"] > self.settings.max_tool_calls:
+                if update["tool_calls_made"] >= self.settings.max_tool_calls:
                     return self._fail(
                         state,
                         steps,
@@ -251,6 +250,7 @@ class Copilot:
                         "a scorecard",
                         update,
                     )
+                update["tool_calls_made"] += 1
                 result_text, step = self._run_tool(lookup, call)
                 steps.append(step)
                 messages.append(
