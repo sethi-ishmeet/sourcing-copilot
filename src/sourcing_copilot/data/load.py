@@ -29,7 +29,9 @@ def _read_json(path: Path) -> object:
     except FileNotFoundError as err:
         raise DataLoadError(f"{path.name}: file not found") from err
     except json.JSONDecodeError as err:
-        raise DataLoadError(f"{path.name}: not valid JSON ({err.msg} at line {err.lineno})") from err
+        raise DataLoadError(
+            f"{path.name}: not valid JSON ({err.msg} at line {err.lineno})"
+        ) from err
 
 
 def _first_error(err: ValidationError) -> str:

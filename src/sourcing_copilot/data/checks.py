@@ -116,7 +116,13 @@ def run_data_checks(data: SampleData, today: date) -> list[Problem]:
                 "no candidate has this LinkedIn URL",
             )
         if entry.added_on > today:
-            add("bad_date", "error", "do_not_contact", entry.linkedin_url, "added_on is in the future")
+            add(
+                "bad_date",
+                "error",
+                "do_not_contact",
+                entry.linkedin_url,
+                "added_on is in the future",
+            )
 
     seen_role_ids: set[str] = set()
     for role in data.roles:

@@ -44,7 +44,7 @@ def _copy_sample_data(tmp_path: Path) -> Path:
 
 def test_broken_json_fails_loudly(tmp_path):
     folder = _copy_sample_data(tmp_path)
-    (folder / "candidates.json").write_text("[{\"id\": ")
+    (folder / "candidates.json").write_text('[{"id": ')
     with pytest.raises(DataLoadError, match="candidates.json: not valid JSON"):
         load_sample_data(folder)
 
