@@ -331,6 +331,7 @@ class Copilot:
         steps: list[StepRecord] = []
         draft = None
         problem = ""
+        last_results: list[rules.RuleResult] = []
         for attempt in range(1, MAX_SUBMIT_ATTEMPTS + 1):
             try:
                 reply = self._call_model(
@@ -357,6 +358,7 @@ class Copilot:
                 )
                 continue
             results = rules.check_message(draft, role)
+            last_results = results
             if not rules.failed(results):
                 steps.append(
                     self._step("draft accepted", {"attempt": attempt, "chars": len(draft)})
@@ -380,7 +382,11 @@ class Copilot:
             steps,
             "needs_review",
             f"message failed checks after {MAX_SUBMIT_ATTEMPTS} attempts: {problem}",
-            {"draft_message": draft},
+            {
+                "draft_message": draft,
+                "rule_results": list(state.get("rule_results", []))
+                + [r.model_dump() for r in last_results],
+            },
         )
 
     def check_message(self, state: ScreeningState) -> dict:
