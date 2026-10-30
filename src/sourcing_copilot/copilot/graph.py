@@ -19,6 +19,7 @@ import time
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from typing import Any
+from uuid import uuid4
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
@@ -154,7 +155,7 @@ class Copilot:
         )
         g.add_conditional_edges(
             "wait_for_approval",
-            lambda s: "send" if s["decision"]["action"] == "approve" else "finish",
+            lambda s: "send" if s["status"] == "screening" else "finish",
         )
         g.add_edge("send", "finish")
         g.add_edge("finish", END)
@@ -165,11 +166,18 @@ class Copilot:
     def screen(self, state: ScreeningState) -> dict:
         """Let the model read the profile and the do-not-contact list, then hand in a
         scorecard. The model may call at most `max_tool_calls` tools."""
-        role = self.data.role(state["role_id"])
-        candidate = self.data.candidate(state["candidate_id"])
+        # When started from the API every field is set. When started from LangGraph Studio
+        # only what the user typed is set, so fill in a run id and check the ids first.
+        state = {**state, "run_id": state.get("run_id") or f"run_{uuid4().hex[:12]}"}
+        role = self.data.role(state.get("role_id") or "")
+        candidate = self.data.candidate(state.get("candidate_id") or "")
         if role is None or candidate is None:
             return self._fail(
-                state, [], f"unknown role {state['role_id']} or candidate {state['candidate_id']}"
+                state,
+                [],
+                f"unknown role {state.get('role_id')!r} or candidate "
+                f"{state.get('candidate_id')!r}; both ids are required",
+                {"run_id": state["run_id"]},
             )
 
         data_warnings = [p.message for p in problems_for_candidate(self.problems, candidate.id)]
@@ -181,6 +189,7 @@ class Copilot:
         ]
         steps: list[StepRecord] = []
         update: dict[str, Any] = {
+            "run_id": state["run_id"],
             "data_warnings": data_warnings,
             "profile": None,
             "contact_allowed": None,
@@ -436,6 +445,22 @@ class Copilot:
                 "summary": (state.get("scorecard") or {}).get("summary"),
             }
         )
+        if isinstance(decision, str):
+            decision = {"action": decision.strip().lower()}
+        decision = {
+            "action": decision.get("action"),
+            "message": decision.get("message"),
+            "decided_by": decision.get("decided_by") or "studio",
+            "decided_at": decision.get("decided_at") or _now_iso(),
+        }
+        if decision["action"] not in {"approve", "reject"}:
+            return self._stop(
+                state,
+                [self._step(state["run_id"], "wait for approval", {"bad_decision": decision})],
+                "needs_review",
+                f"decision must be approve or reject, got {decision['action']!r}",
+                {"decision": decision},
+            )
         edited = (decision.get("message") or "").strip()
         final = edited or state["draft_message"]
         step = self._step(

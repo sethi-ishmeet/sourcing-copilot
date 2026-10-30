@@ -6,6 +6,7 @@ from __future__ import annotations
 import sqlite3
 
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.types import Command
 
 from sourcing_copilot.config import Settings
 from sourcing_copilot.copilot.linkedin import PretendLinkedIn
@@ -239,3 +240,35 @@ def test_a_paused_run_survives_a_restart(make_copilot, tmp_path):
     state = second.decide("run_1", "approve", decided_by="recruiter")
     assert state["status"] == "sent"
     assert linkedin.sent_count == 1
+
+
+# -- started from LangGraph Studio, where the input is whatever the user typed ---------
+
+
+def test_missing_ids_fail_readably_and_a_run_id_is_filled_in(make_copilot):
+    copilot = make_copilot()
+    copilot.graph.invoke({"status": "screening"}, {"configurable": {"thread_id": "t1"}})
+    state = copilot.graph.get_state({"configurable": {"thread_id": "t1"}}).values
+    assert state["status"] == "failed"
+    assert "both ids are required" in state["error"]
+    assert state["run_id"].startswith("run_")
+
+
+def test_a_bare_approve_string_works_as_a_decision(make_copilot):
+    linkedin = PretendLinkedIn()
+    copilot = make_copilot(linkedin=linkedin)
+    copilot.start("run_1", ROLE, "cand_001")
+    copilot.graph.invoke(Command(resume="approve"), {"configurable": {"thread_id": "run_1"}})
+    state = copilot.state("run_1")
+    assert state["status"] == "sent"
+    assert state["decision"]["decided_by"] == "studio"
+    assert linkedin.sent_count == 1
+
+
+def test_an_unknown_decision_stops_for_review_instead_of_crashing(make_copilot):
+    copilot = make_copilot()
+    copilot.start("run_1", ROLE, "cand_001")
+    copilot.graph.invoke(Command(resume="maybe"), {"configurable": {"thread_id": "run_1"}})
+    state = copilot.state("run_1")
+    assert state["status"] == "needs_review"
+    assert "must be approve or reject" in state["error"]
