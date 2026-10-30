@@ -142,21 +142,31 @@ class Copilot:
         g.add_node("send", self.send)
         g.add_node("finish", self.finish)
 
-        def still_going(next_step: str):
-            return lambda state: next_step if state["status"] == "screening" else "finish"
+        # Each step either carries on to the next one or stops at `finish`. The list of
+        # possible destinations is given explicitly so LangGraph can draw the graph.
+        def next_or_finish(next_step: str):
+            def route(state: ScreeningState) -> str:
+                return next_step if state["status"] == "screening" else "finish"
+
+            return route
+
+        def after_check_message(state: ScreeningState) -> str:
+            return "wait_for_approval" if state["status"] == "awaiting_approval" else "finish"
 
         g.add_edge(START, "screen")
-        g.add_conditional_edges("screen", still_going("check_scorecard"))
-        g.add_conditional_edges("check_scorecard", still_going("write_message"))
-        g.add_conditional_edges("write_message", still_going("check_message"))
         g.add_conditional_edges(
-            "check_message",
-            lambda s: "wait_for_approval" if s["status"] == "awaiting_approval" else "finish",
+            "screen", next_or_finish("check_scorecard"), ["check_scorecard", "finish"]
         )
         g.add_conditional_edges(
-            "wait_for_approval",
-            lambda s: "send" if s["status"] == "screening" else "finish",
+            "check_scorecard", next_or_finish("write_message"), ["write_message", "finish"]
         )
+        g.add_conditional_edges(
+            "write_message", next_or_finish("check_message"), ["check_message", "finish"]
+        )
+        g.add_conditional_edges(
+            "check_message", after_check_message, ["wait_for_approval", "finish"]
+        )
+        g.add_conditional_edges("wait_for_approval", next_or_finish("send"), ["send", "finish"])
         g.add_edge("send", "finish")
         g.add_edge("finish", END)
         return g.compile(checkpointer=checkpointer)
