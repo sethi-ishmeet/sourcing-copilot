@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "sourcing_copilot": "./src/sourcing_copilot/copilot/studio.py:make_graph"
+  },
+  "env": ".env"
+}

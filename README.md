@@ -109,7 +109,7 @@ src/sourcing_copilot/
 frontend/     React + TypeScript, two pages                   (user experience)
 sample_data/  candidates.json, roles.json, do_not_contact.csv (the three sources)
 evals/        cases.jsonl, scorers.py, run.py, judge.py
-tests/        data/, copilot/, api/, evals/, browser/
+tests/        data/, copilot/, api/, store/, evals/, browser/
 reports/      committed test, eval and browser output
 ```
 
@@ -182,7 +182,7 @@ is milliseconds, with Gemini 3.8 Flash about 20 to 40 seconds.
 ## Test strategy
 
 Risk-based: the things most likely to go wrong, or most costly if they do, get the most
-coverage. 97 tests, all deterministic, running in about four seconds plus the browser test.
+coverage. 98 tests, all deterministic, running in about five seconds plus the browser test.
 
 | Risk | How it is covered | Where |
 |---|---|---|
@@ -196,6 +196,7 @@ coverage. 97 tests, all deterministic, running in about four seconds plus the br
 | Wrong people can act | 401 for missing or unknown keys, 403 for a viewer on recruiter actions, and the state is unchanged after a refused action | `tests/api/test_auth.py` (7) |
 | Bad requests | 422 on missing fields and bad enum values, 404 for unknown ids, 400 for a candidate not on the shortlist, 409 for deciding twice, 422 with rule names for a bad edit | `tests/api/test_screenings.py` (18) |
 | Dependencies fail | Model outage ends as a failed screening with a readable error, not a 500; LinkedIn down ends as failed with nothing sent | API and flow tests |
+| Concurrent requests read a half-written or missing row | Eight threads read and write one store at once and must always see the right rows. Found by the browser test, which fires two requests at once | `tests/store/` (1) |
 | The critical path breaks in the browser | One Playwright test: open role, screen, read scorecard and draft, approve, see sent, see it on the shortlist; screenshots saved | `tests/browser/` (1) |
 | The eval harness itself rots | The fake-model eval suite runs as a pytest test and must be 100% | `tests/evals/` (2) |
 
@@ -284,6 +285,10 @@ text for every score, and also flagged a location mismatch nobody asked it about
   whether they edited, and the message id that was sent.
 - **Reports**: test results as JUnit XML, eval reports as Markdown and JSON, browser
   screenshots, all under `reports/`.
+- **LangGraph Studio**: `uv run langgraph dev` starts the local dev server and opens
+  Studio, where you can run the graph node by node, watch the state change after each
+  step, pause at `wait_for_approval`, and resume with a decision. Input to start a run:
+  `{"run_id": "studio_1", "role_id": "role_backend_sr", "candidate_id": "cand_001"}`.
 - **LangSmith**: not wired in, but because the model goes through LangChain, setting
   `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` would trace every call with no code
   change.
@@ -292,7 +297,7 @@ text for every score, and also flagged a location mismatch nobody asked it about
 
 | When | What runs | Why |
 |---|---|---|
-| Every pull request (`.github/workflows/ci.yml`) | Lint; the 96 non-browser tests; UI typecheck and build; the Playwright test against the built UI; the fake-model evals at 100% | Everything deterministic and free. A red build means a real regression, never a flaky model. |
+| Every pull request (`.github/workflows/ci.yml`) | Lint; the 97 non-browser tests; UI typecheck and build; the Playwright test against the built UI; the fake-model evals at 100% | Everything deterministic and free. A red build means a real regression, never a flaky model. |
 | Deploy (not built here; the Dockerfile is the unit) | Build the image, run it, hit `/api/health`, run the API tests against the deployed URL with the fake model, then one live screening of a known candidate and check it pauses with a grounded scorecard | Catches config and environment problems the unit tests cannot see. |
 | Nightly (`.github/workflows/nightly-evals.yml`) | The live-model evals, 3 trials per case, with the judge, against the `GOOGLE_API_KEY` secret; fails under 85% | Model and prompt drift show up here, not on a PR. The judge scores give an early read on message quality. |
 | After an incident | Add a case to `evals/cases.jsonl` or a test, whichever reproduces it | Escaped defects become permanent checks. |

@@ -24,3 +24,6 @@ reports/browser/on-failure/
 
 # Editor and assistant settings
 .claude/
+
+# LangGraph dev server state (Studio)
+.langgraph_api/

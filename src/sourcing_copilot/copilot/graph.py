@@ -75,7 +75,7 @@ class Copilot:
         self.today = today or (lambda: datetime.now(UTC).date())
         self.send_retry_wait_seconds = send_retry_wait_seconds
         self.problems = run_data_checks(data, self.today())
-        self.graph = self._build()
+        self.graph = self.build_graph(self.checkpointer)
 
     # -- public API -------------------------------------------------------------
 
@@ -129,7 +129,9 @@ class Copilot:
 
     # -- graph --------------------------------------------------------------------
 
-    def _build(self):
+    def build_graph(self, checkpointer: BaseCheckpointSaver | None):
+        """Wire the steps together. The app passes its SQLite checkpointer; LangGraph
+        Studio passes None because the dev server brings its own."""
         g = StateGraph(ScreeningState)
         g.add_node("screen", self.screen)
         g.add_node("check_scorecard", self.check_scorecard)
@@ -156,7 +158,7 @@ class Copilot:
         )
         g.add_edge("send", "finish")
         g.add_edge("finish", END)
-        return g.compile(checkpointer=self.checkpointer)
+        return g.compile(checkpointer=checkpointer)
 
     # -- steps --------------------------------------------------------------------
 

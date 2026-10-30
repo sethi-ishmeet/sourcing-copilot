@@ -14,6 +14,10 @@ def _now() -> str:
 
 
 class ScreeningStore:
+    """One connection, one lock. Every query, reads included, runs under the lock: the
+    API serves concurrent requests from a thread pool, and a sqlite3 connection shared by
+    two threads at once returns garbage (a row that is not there, a cursor reset halfway)."""
+
     def __init__(self, conn: sqlite3.Connection) -> None:
         self.conn = conn
         self.lock = threading.Lock()
@@ -86,13 +90,17 @@ class ScreeningStore:
     # -- reads ------------------------------------------------------------------
 
     def get(self, run_id: str) -> dict[str, Any] | None:
-        row = self.conn.execute("SELECT * FROM screenings WHERE run_id = ?", (run_id,)).fetchone()
+        with self.lock:
+            row = self.conn.execute(
+                "SELECT * FROM screenings WHERE run_id = ?", (run_id,)
+            ).fetchone()
         return _screening_from_row(row) if row else None
 
     def steps(self, run_id: str) -> list[dict[str, Any]]:
-        rows = self.conn.execute(
-            "SELECT * FROM steps WHERE run_id = ? ORDER BY seq", (run_id,)
-        ).fetchall()
+        with self.lock:
+            rows = self.conn.execute(
+                "SELECT * FROM steps WHERE run_id = ? ORDER BY seq", (run_id,)
+            ).fetchall()
         return [
             {
                 "seq": r["seq"],
@@ -108,23 +116,25 @@ class ScreeningStore:
         ]
 
     def audit(self, run_id: str) -> list[dict[str, Any]]:
-        rows = self.conn.execute(
-            "SELECT at, actor, action, detail FROM audit_log WHERE run_id = ? ORDER BY id",
-            (run_id,),
-        ).fetchall()
+        with self.lock:
+            rows = self.conn.execute(
+                "SELECT at, actor, action, detail FROM audit_log WHERE run_id = ? ORDER BY id",
+                (run_id,),
+            ).fetchall()
         return [dict(r) for r in rows]
 
     def latest_for_role(self, role_id: str) -> dict[str, dict[str, Any]]:
         """The newest screening per candidate for a role: {candidate_id: {...}}."""
-        rows = self.conn.execute(
-            """SELECT s.run_id, s.candidate_id, s.status, s.updated_at
-               FROM screenings s
-               JOIN (SELECT candidate_id, MAX(created_at) AS created_at
-                     FROM screenings WHERE role_id = ? GROUP BY candidate_id) newest
-                 ON newest.candidate_id = s.candidate_id AND newest.created_at = s.created_at
-               WHERE s.role_id = ?""",
-            (role_id, role_id),
-        ).fetchall()
+        with self.lock:
+            rows = self.conn.execute(
+                """SELECT s.run_id, s.candidate_id, s.status, s.updated_at
+                   FROM screenings s
+                   JOIN (SELECT candidate_id, MAX(created_at) AS created_at
+                         FROM screenings WHERE role_id = ? GROUP BY candidate_id) newest
+                     ON newest.candidate_id = s.candidate_id AND newest.created_at = s.created_at
+                   WHERE s.role_id = ?""",
+                (role_id, role_id),
+            ).fetchall()
         return {
             r["candidate_id"]: {
                 "run_id": r["run_id"],
@@ -135,7 +145,8 @@ class ScreeningStore:
         }
 
     def count(self) -> int:
-        return self.conn.execute("SELECT COUNT(*) FROM screenings").fetchone()[0]
+        with self.lock:
+            return self.conn.execute("SELECT COUNT(*) FROM screenings").fetchone()[0]
 
 
 def _dump(value: Any) -> str | None:

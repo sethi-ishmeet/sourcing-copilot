@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { api, describeError, type DataChecks, type Role, type RoleSummary } from "../api";
+import {
+  api,
+  describeError,
+  getApiKey,
+  SIGN_IN_OPTIONS,
+  type DataChecks,
+  type Role,
+  type RoleSummary,
+} from "../api";
 import { StatusBadge } from "../components";
 
 // Screen one: pick a role, see its shortlist, start a screening.
@@ -41,11 +49,18 @@ export default function RolePage() {
     }
   }
 
-  if (error) return <p className="error">{error}</p>;
+  const isViewer = SIGN_IN_OPTIONS.find((o) => o.key === getApiKey())?.label === "Viewer";
+
+  if (!role && error) return <p className="error">{error}</p>;
   if (!role) return <p className="muted">Loading…</p>;
 
   return (
     <>
+      {error && (
+        <p className="error" data-testid="page-error">
+          {error}
+        </p>
+      )}
       <div className="row space-between">
         <div>
           <h1>
@@ -130,7 +145,8 @@ export default function RolePage() {
                 <td>
                   <button
                     onClick={() => startScreening(c.id)}
-                    disabled={screening !== null}
+                    disabled={screening !== null || isViewer}
+                    title={isViewer ? "Only a recruiter can start a screening" : undefined}
                     data-testid={`screen-${c.id}`}
                   >
                     {screening === c.id ? "Screening…" : "Screen"}
