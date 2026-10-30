@@ -1,0 +1,600 @@
+{
+  "screening": {
+    "run_id": "run_2f50d7454601",
+    "role_id": "role_backend_sr",
+    "candidate_id": "cand_005",
+    "status": "sent",
+    "started_by": "recruiter",
+    "scorecard": {
+      "scores": [
+        {
+          "requirement_id": "python_backend",
+          "score": 5,
+          "reason": "Profile mentions python, django.",
+          "proof": "Python backend engineer working on clinic scheduling software"
+        },
+        {
+          "requirement_id": "cloud",
+          "score": 5,
+          "reason": "Profile mentions gcp, google cloud.",
+          "proof": "Scheduling and reminders backend in Django on GCP"
+        },
+        {
+          "requirement_id": "postgres",
+          "score": 5,
+          "reason": "Profile mentions postgresql, postgres.",
+          "proof": "Day to day it is Django, PostgreSQL and Google Cloud"
+        },
+        {
+          "requirement_id": "regulated",
+          "score": 3,
+          "reason": "Profile mentions clinic.",
+          "proof": "Backend Engineer at Harbour Clinic Software"
+        }
+      ],
+      "recommend": true,
+      "confidence": "low",
+      "summary": "Aisha Mahmood is Backend Engineer at Harbour Clinic Software with 8.8 years of experience. Worth reaching out.",
+      "warnings": [
+        "Profile was last updated 881 days ago; details may be out of date."
+      ]
+    },
+    "draft_message": "Hi Aisha, I'm Sam, Talent Partner at Acme Health. Your work as Backend Engineer at Harbour Clinic Software looks like a strong fit for our Senior Backend Engineer role at Acme Health. Open to a quick chat this week?",
+    "final_message": "Hi Aisha, I'm Sam, Talent Partner at Acme Health. Your work as Backend Engineer at Harbour Clinic Software looks like a strong fit for our Senior Backend Engineer role at Acme Health. Open to a quick chat this week?",
+    "decision": {
+      "action": "approve",
+      "message": null,
+      "decided_by": "recruiter",
+      "decided_at": "2026-10-30T21:17:26.826+00:00"
+    },
+    "send_receipt": {
+      "message_id": "msg_fbc82205cc",
+      "candidate_id": "cand_005",
+      "sent_at": "2026-10-30T21:17:26+00:00",
+      "attempts": 1
+    },
+    "rule_results": [
+      {
+        "rule": "covers_every_requirement",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "rule": "proof_is_on_the_profile",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "rule": "recommendation_matches_scores",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "rule": "message_length",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "rule": "no_links_or_emails",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "rule": "no_internal_ids",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "rule": "mentions_the_role",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "data_warnings": [
+      "profile last updated 881 days ago"
+    ],
+    "error": null,
+    "tokens_in": 2159,
+    "tokens_out": 368,
+    "created_at": "2026-10-30T21:17:26.813+00:00",
+    "updated_at": "2026-10-30T21:17:26.828+00:00",
+    "candidate_name": "Aisha Mahmood",
+    "role_title": "Senior Backend Engineer",
+    "requirements": [
+      {
+        "id": "python_backend",
+        "text": "5+ years building backend services in Python",
+        "must_have": true
+      },
+      {
+        "id": "cloud",
+        "text": "Production experience on GCP or AWS",
+        "must_have": true
+      },
+      {
+        "id": "postgres",
+        "text": "PostgreSQL schema design and query tuning",
+        "must_have": false
+      },
+      {
+        "id": "regulated",
+        "text": "Experience in healthcare or another regulated industry",
+        "must_have": false
+      }
+    ],
+    "steps": [
+      {
+        "seq": 1,
+        "name": "ask model to screen",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.818+00:00",
+        "ms": 1,
+        "tokens_in": 435,
+        "tokens_out": 25
+      },
+      {
+        "seq": 2,
+        "name": "tool: get_profile",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.818+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 3,
+        "name": "ask model to screen",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "tokens_in": 732,
+        "tokens_out": 27
+      },
+      {
+        "seq": 4,
+        "name": "tool: check_do_not_contact",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 5,
+        "name": "ask model to screen",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "tokens_in": 754,
+        "tokens_out": 240
+      },
+      {
+        "seq": 6,
+        "name": "scorecard accepted",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 7,
+        "name": "check scorecard",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.820+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 8,
+        "name": "ask model to write message",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.820+00:00",
+        "ms": 0,
+        "tokens_in": 238,
+        "tokens_out": 76
+      },
+      {
+        "seq": 9,
+        "name": "draft accepted",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.820+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 10,
+        "name": "check message",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.821+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 11,
+        "name": "wait for approval",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.826+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 12,
+        "name": "send",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.826+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 13,
+        "name": "finish",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.827+00:00",
+        "ms": 0,
+        "tokens_in": 0,
+        "tokens_out": 0
+      }
+    ]
+  },
+  "trace": {
+    "run_id": "run_2f50d7454601",
+    "steps": [
+      {
+        "seq": 1,
+        "name": "ask model to screen",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.818+00:00",
+        "ms": 1,
+        "details": {
+          "tool_calls": [
+            {
+              "name": "get_profile",
+              "args": {
+                "candidate_id": "cand_005"
+              }
+            }
+          ],
+          "text": ""
+        },
+        "tokens_in": 435,
+        "tokens_out": 25
+      },
+      {
+        "seq": 2,
+        "name": "tool: get_profile",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.818+00:00",
+        "ms": 0,
+        "details": {
+          "input": {
+            "candidate_id": "cand_005"
+          },
+          "output": {
+            "id": "cand_005",
+            "full_name": "Aisha Mahmood",
+            "headline": "Backend Engineer at Harbour Clinic Software",
+            "location": "Ottawa, Canada",
+            "linkedin_url": "https://www.linkedin.com/in/aisha-mahmood-sample",
+            "current_title": "Backend Engineer",
+            "current_company": "Harbour Clinic Software",
+            "years_of_experience": 8.8,
+            "skills": [
+              "Python",
+              "Django",
+              "PostgreSQL",
+              "Google Cloud",
+              "Celery"
+            ],
+            "experience": [
+              {
+                "title": "Backend Engineer",
+                "company": "Harbour Clinic Software",
+                "start_date": "2020-04",
+                "end_date": null,
+                "description": "Scheduling and reminders backend in Django on GCP. PostgreSQL migrations and query tuning for the reporting module."
+              },
+              {
+                "title": "Software Developer",
+                "company": "Civic Apps",
+                "start_date": "2018-01",
+                "end_date": "2020-03",
+                "description": "Python and Django for municipal web apps."
+              }
+            ],
+            "education": [
+              {
+                "school": "Carleton University",
+                "degree": "BCS",
+                "end_year": 2017
+              }
+            ],
+            "profile_updated_at": "2024-06-01",
+            "days_since_update": 881,
+            "is_stale": true,
+            "about_written_by_candidate": "Python backend engineer working on clinic scheduling software. Day to day it is Django, PostgreSQL and Google Cloud.",
+            "data_warnings": [
+              "profile last updated 881 days ago"
+            ]
+          }
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 3,
+        "name": "ask model to screen",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "details": {
+          "tool_calls": [
+            {
+              "name": "check_do_not_contact",
+              "args": {
+                "candidate_id": "cand_005"
+              }
+            }
+          ],
+          "text": ""
+        },
+        "tokens_in": 732,
+        "tokens_out": 27
+      },
+      {
+        "seq": 4,
+        "name": "tool: check_do_not_contact",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "details": {
+          "input": {
+            "candidate_id": "cand_005"
+          },
+          "output": {
+            "candidate_id": "cand_005",
+            "allowed": true,
+            "reason": "not on the do-not-contact list"
+          }
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 5,
+        "name": "ask model to screen",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "details": {
+          "tool_calls": [
+            {
+              "name": "submit_scorecard",
+              "args": {
+                "scores": [
+                  {
+                    "requirement_id": "python_backend",
+                    "score": 5,
+                    "reason": "Profile mentions python, django.",
+                    "proof": "Python backend engineer working on clinic scheduling software"
+                  },
+                  {
+                    "requirement_id": "cloud",
+                    "score": 5,
+                    "reason": "Profile mentions gcp, google cloud.",
+                    "proof": "Scheduling and reminders backend in Django on GCP"
+                  },
+                  {
+                    "requirement_id": "postgres",
+                    "score": 5,
+                    "reason": "Profile mentions postgresql, postgres.",
+                    "proof": "Day to day it is Django, PostgreSQL and Google Cloud"
+                  },
+                  {
+                    "requirement_id": "regulated",
+                    "score": 3,
+                    "reason": "Profile mentions clinic.",
+                    "proof": "Backend Engineer at Harbour Clinic Software"
+                  }
+                ],
+                "recommend": true,
+                "confidence": "low",
+                "summary": "Aisha Mahmood is Backend Engineer at Harbour Clinic Software with 8.8 years of experience. Worth reaching out.",
+                "warnings": [
+                  "Profile was last updated 881 days ago; details may be out of date."
+                ]
+              }
+            }
+          ],
+          "text": ""
+        },
+        "tokens_in": 754,
+        "tokens_out": 240
+      },
+      {
+        "seq": 6,
+        "name": "scorecard accepted",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.819+00:00",
+        "ms": 0,
+        "details": {
+          "attempt": 1
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 7,
+        "name": "check scorecard",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.820+00:00",
+        "ms": 0,
+        "details": {
+          "rules": [
+            {
+              "rule": "covers_every_requirement",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "rule": "proof_is_on_the_profile",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "rule": "recommendation_matches_scores",
+              "passed": true,
+              "detail": ""
+            }
+          ]
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 8,
+        "name": "ask model to write message",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.820+00:00",
+        "ms": 0,
+        "details": {
+          "tool_calls": [
+            {
+              "name": "submit_message",
+              "args": {
+                "message": "Hi Aisha, I'm Sam, Talent Partner at Acme Health. Your work as Backend Engineer at Harbour Clinic Software looks like a strong fit for our Senior Backend Engineer role at Acme Health. Open to a quick chat this week?"
+              }
+            }
+          ],
+          "text": ""
+        },
+        "tokens_in": 238,
+        "tokens_out": 76
+      },
+      {
+        "seq": 9,
+        "name": "draft accepted",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.820+00:00",
+        "ms": 0,
+        "details": {
+          "attempt": 1,
+          "chars": 215
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 10,
+        "name": "check message",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.821+00:00",
+        "ms": 0,
+        "details": {
+          "rules": [
+            {
+              "rule": "message_length",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "rule": "no_links_or_emails",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "rule": "no_internal_ids",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "rule": "mentions_the_role",
+              "passed": true,
+              "detail": ""
+            }
+          ]
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 11,
+        "name": "wait for approval",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.826+00:00",
+        "ms": 0,
+        "details": {
+          "action": "approve",
+          "decided_by": "recruiter",
+          "edited": false
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 12,
+        "name": "send",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.826+00:00",
+        "ms": 0,
+        "details": {
+          "attempt": 1,
+          "receipt": {
+            "message_id": "msg_fbc82205cc",
+            "candidate_id": "cand_005",
+            "sent_at": "2026-10-30T21:17:26+00:00",
+            "attempts": 1
+          }
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      },
+      {
+        "seq": 13,
+        "name": "finish",
+        "status": "ok",
+        "started_at": "2026-10-30T21:17:26.827+00:00",
+        "ms": 0,
+        "details": {
+          "status": "sent",
+          "tokens_in": 2159,
+          "tokens_out": 368,
+          "error": null
+        },
+        "tokens_in": 0,
+        "tokens_out": 0
+      }
+    ],
+    "audit": [
+      {
+        "at": "2026-10-30T21:17:26.813+00:00",
+        "actor": "recruiter",
+        "action": "started",
+        "detail": "screening Aisha Mahmood for Senior Backend Engineer"
+      },
+      {
+        "at": "2026-10-30T21:17:26.823+00:00",
+        "actor": "copilot",
+        "action": "awaiting_approval",
+        "detail": ""
+      },
+      {
+        "at": "2026-10-30T21:17:26.825+00:00",
+        "actor": "recruiter",
+        "action": "approved",
+        "detail": ""
+      },
+      {
+        "at": "2026-10-30T21:17:26.828+00:00",
+        "actor": "copilot",
+        "action": "sent",
+        "detail": "message id msg_fbc82205cc"
+      }
+    ]
+  }
+}

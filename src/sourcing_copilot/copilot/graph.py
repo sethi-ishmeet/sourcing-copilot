@@ -206,7 +206,11 @@ class Copilot:
                     submit_attempts += 1
                     scorecard, problem = self._parse_scorecard(call["args"], role, candidate)
                     if scorecard is not None:
-                        steps.append(self._step("scorecard accepted", {"attempt": submit_attempts}))
+                        steps.append(
+                            self._step(
+                                state["run_id"], "scorecard accepted", {"attempt": submit_attempts}
+                            )
+                        )
                         update["scorecard"] = scorecard.model_dump()
                         return {
                             **update,
@@ -217,6 +221,7 @@ class Copilot:
                     last_problem = problem
                     steps.append(
                         self._step(
+                            state["run_id"],
                             "scorecard rejected",
                             {"attempt": submit_attempts, "problem": problem},
                             status="error",
@@ -251,7 +256,7 @@ class Copilot:
                         update,
                     )
                 update["tool_calls_made"] += 1
-                result_text, step = self._run_tool(lookup, call)
+                result_text, step = self._run_tool(state["run_id"], lookup, call)
                 steps.append(step)
                 messages.append(
                     ToolMessage(content=result_text, tool_call_id=call["id"], name=call["name"])
@@ -293,7 +298,7 @@ class Copilot:
         if entry is not None:
             return self._stop(
                 state,
-                [self._step("check scorecard", {"do_not_contact": entry.reason})],
+                [self._step(state["run_id"], "check scorecard", {"do_not_contact": entry.reason})],
                 "do_not_contact",
                 f"on the do-not-contact list: {entry.reason}",
                 {**update, "contact_allowed": False, "contact_reason": entry.reason},
@@ -307,6 +312,7 @@ class Copilot:
 
         failed = rules.failed(results)
         step = self._step(
+            state["run_id"],
             "check scorecard",
             {"rules": [r.model_dump() for r in results]},
             status="error" if failed else "ok",
@@ -361,13 +367,18 @@ class Copilot:
             last_results = results
             if not rules.failed(results):
                 steps.append(
-                    self._step("draft accepted", {"attempt": attempt, "chars": len(draft)})
+                    self._step(
+                        state["run_id"], "draft accepted", {"attempt": attempt, "chars": len(draft)}
+                    )
                 )
                 return {"draft_message": draft, "steps": steps, "status": "screening"}
             problem = rules.describe_failures(results)
             steps.append(
                 self._step(
-                    "draft rejected", {"attempt": attempt, "problem": problem}, status="error"
+                    state["run_id"],
+                    "draft rejected",
+                    {"attempt": attempt, "problem": problem},
+                    status="error",
                 )
             )
             messages.append(
@@ -397,6 +408,7 @@ class Copilot:
         all_results = list(state.get("rule_results", [])) + [r.model_dump() for r in results]
         failed = rules.failed(results)
         step = self._step(
+            state["run_id"],
             "check message",
             {"rules": [r.model_dump() for r in results]},
             status="error" if failed else "ok",
@@ -425,6 +437,7 @@ class Copilot:
         edited = (decision.get("message") or "").strip()
         final = edited or state["draft_message"]
         step = self._step(
+            state["run_id"],
             "wait for approval",
             {
                 "action": decision["action"],
@@ -452,7 +465,11 @@ class Copilot:
         if find_do_not_contact(self.data, candidate) is not None:
             return self._stop(
                 state,
-                [self._step("send", {"blocked": "do_not_contact"}, status="error")],
+                [
+                    self._step(
+                        state["run_id"], "send", {"blocked": "do_not_contact"}, status="error"
+                    )
+                ],
                 "do_not_contact",
                 "on the do-not-contact list",
                 {},
@@ -461,7 +478,14 @@ class Copilot:
         if rules.failed(results):
             return self._stop(
                 state,
-                [self._step("send", {"blocked": rules.describe_failures(results)}, status="error")],
+                [
+                    self._step(
+                        state["run_id"],
+                        "send",
+                        {"blocked": rules.describe_failures(results)},
+                        status="error",
+                    )
+                ],
                 "needs_review",
                 f"edited message failed checks: {rules.describe_failures(results)}",
                 {},
@@ -477,6 +501,7 @@ class Copilot:
                 last_error = str(err)
                 steps.append(
                     self._step(
+                        state["run_id"],
                         "send",
                         {"attempt": attempt, "error": last_error},
                         status="error",
@@ -488,7 +513,10 @@ class Copilot:
                 continue
             steps.append(
                 self._step(
-                    "send", {"attempt": attempt, "receipt": receipt.model_dump()}, started=started
+                    state["run_id"],
+                    "send",
+                    {"attempt": attempt, "receipt": receipt.model_dump()},
+                    started=started,
                 )
             )
             return {"send_receipt": receipt.model_dump(), "steps": steps, "status": "sent"}
@@ -500,6 +528,7 @@ class Copilot:
         tokens_in = sum(s.get("tokens_in", 0) for s in state.get("steps", []))
         tokens_out = sum(s.get("tokens_out", 0) for s in state.get("steps", []))
         step = self._step(
+            state["run_id"],
             "finish",
             {
                 "status": state["status"],
@@ -541,12 +570,19 @@ class Copilot:
                 )
         else:
             steps.append(
-                self._step(step_name, {"error": str(last_err)}, status="error", started=started)
+                self._step(
+                    state["run_id"],
+                    step_name,
+                    {"error": str(last_err)},
+                    status="error",
+                    started=started,
+                )
             )
             raise ModelError(f"model call failed twice: {last_err}")
         usage = reply.usage_metadata or {}
         steps.append(
             self._step(
+                state["run_id"],
                 step_name,
                 {
                     "tool_calls": [
@@ -557,13 +593,12 @@ class Copilot:
                 started=started,
                 tokens_in=usage.get("input_tokens", 0),
                 tokens_out=usage.get("output_tokens", 0),
-                run_id=state.get("run_id"),
             )
         )
         return reply
 
     @staticmethod
-    def _run_tool(lookup, call) -> tuple[str, StepRecord]:
+    def _run_tool(run_id, lookup, call) -> tuple[str, StepRecord]:
         started = time.perf_counter()
         tool = lookup.get(call["name"])
         if tool is None:
@@ -572,6 +607,7 @@ class Copilot:
             result = tool.invoke(call["args"])
         payload = json.loads(result)
         step = Copilot._step(
+            run_id,
             f"tool: {call['name']}",
             {"input": call["args"], "output": payload},
             status="error" if "error" in payload else "ok",
@@ -597,7 +633,7 @@ class Copilot:
 
     @staticmethod
     def _step(
-        name, details, status="ok", started=None, tokens_in=0, tokens_out=0, run_id=None
+        run_id, name, details, status="ok", started=None, tokens_in=0, tokens_out=0
     ) -> StepRecord:
         ms = int((time.perf_counter() - started) * 1000) if started is not None else 0
         record: StepRecord = {

@@ -1,0 +1,90 @@
+# Runs on every pull request and on pushes to main. Everything here is deterministic and
+# needs no API key: the fake model drives the tests, the browser test and the evals.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Lint and test the backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: Lint
+        run: |
+          uv run ruff check src tests evals
+          uv run ruff format --check src tests evals
+      - name: Unit, integration, API, data and eval-harness tests
+        run: uv run pytest -m "not browser" --junitxml=reports/tests/junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: reports/tests/junit.xml
+
+  frontend:
+    name: Typecheck and build the UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run typecheck
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  browser:
+    name: Browser test (critical path)
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run pytest -m browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-screenshots
+          path: reports/browser
+
+  evals:
+    name: Evals with the fake model
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: Run every case once; all must pass
+        run: uv run python -m evals.run --model fake --trials 1 --threshold 1.0 --out reports/evals
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report-fake-model
+          path: reports/evals

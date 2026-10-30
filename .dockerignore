@@ -1,0 +1,9 @@
+.venv
+.git
+frontend/node_modules
+frontend/dist
+data
+reports
+tests
+evals
+.env

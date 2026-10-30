@@ -31,8 +31,8 @@ test-browser:       ## The one Playwright test. Needs `make ui-build` first.
 evals:              ## Deterministic evals with the fake model; writes reports/evals/fake-model.*
 	$(PY) python -m evals.run --model fake --trials 1 --out reports/evals
 
-evals-live:         ## Evals against Gemini, 3 trials per case; needs GOOGLE_API_KEY
-	$(PY) python -m evals.run --model gemini --trials 3 --out reports/evals
+evals-live:         ## Evals against Gemini, 3 trials per case plus the message judge; needs GOOGLE_API_KEY
+	$(PY) python -m evals.run --model gemini --trials 3 --judge --out reports/evals
 
 check: lint test evals   ## Everything a pull request must pass (browser test runs in CI too)
 
