@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local data and secrets
+.env
+*.sqlite
+*.sqlite-journal
+data/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Test scratch output (committed reports live in reports/)
+test-results/
+playwright-report/
