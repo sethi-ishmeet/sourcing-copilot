@@ -1,6 +1,6 @@
 {
   "model": "fake",
-  "run_at": "2026-10-30T21:06:35+00:00",
+  "run_at": "2026-10-30T21:18:18+00:00",
   "today": "2026-10-30",
   "trials_per_case": 1,
   "threshold": 0.85,
@@ -37,7 +37,7 @@
         "checked": 7
       }
     },
-    "total_ms": 64,
+    "total_ms": 68,
     "total_tokens": 47646
   },
   "cases": [
@@ -59,7 +59,7 @@
           "passed": true,
           "status": "awaiting_approval",
           "error": null,
-          "ms": 6,
+          "ms": 7,
           "tokens_in": 2285,
           "tokens_out": 396,
           "criteria": {
@@ -546,7 +546,7 @@
           "passed": true,
           "status": "sent",
           "error": null,
-          "ms": 4,
+          "ms": 5,
           "tokens_in": 2206,
           "tokens_out": 388,
           "criteria": {
@@ -754,7 +754,7 @@
           "passed": true,
           "status": "not_recommended",
           "error": null,
-          "ms": 2,
+          "ms": 3,
           "tokens_in": 1939,
           "tokens_out": 219,
           "criteria": {
@@ -887,7 +887,7 @@
           "passed": true,
           "status": "failed",
           "error": "could not send after 3 attempts: LinkedIn is not responding",
-          "ms": 4,
+          "ms": 5,
           "tokens_in": 2285,
           "tokens_out": 396,
           "criteria": {

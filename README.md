@@ -148,7 +148,7 @@ matches no candidate.
 
 Keys go in the `X-API-Key` header. Missing or unknown keys get 401; a viewer key on a
 recruiter action gets 403. A screening runs inside the request; with the fake model that
-is milliseconds, with Gemini about ten seconds.
+is milliseconds, with Gemini 3.8 Flash about 20 to 40 seconds.
 
 ## Design decisions
 
@@ -160,7 +160,7 @@ is milliseconds, with Gemini about ten seconds.
 | No send tool for the model | Least privilege. The model cannot send, and cannot send to anyone but the chosen candidate. | None worth mentioning. |
 | Rules in code, run on model output and on human edits alike | The same policy applies no matter who wrote the text. | Rules are blunt: they cannot judge tone or fairness. The eval judge covers that. |
 | A fake model for every test and the PR eval run | Deterministic, free, offline. CI never needs a secret. | The fake exercises the pipeline and the safeguards, not the model's judgement. The nightly live run covers that. |
-| Screening runs inside the request | Simplest thing that works for a ten-second task; no polling, no worker. | A production version would run it in a worker and let the UI poll. See "With more time". |
+| Screening runs inside the request | Simplest thing that works for a half-minute task; no polling, no worker. | A production version would run it in a worker and let the UI poll. See "With more time". |
 | SQLite with plain SQL | One file, no ORM, easy to read and to query by hand. | Not for many concurrent writers. The store serialises writes with a lock. |
 | Two API keys as the whole auth story | Enough to show the viewer/recruiter boundary and test 401 vs 403. | Real deployments want SSO and per-user identity in the audit log. |
 
@@ -263,10 +263,13 @@ absorb occasional slips; and the threshold is below 100% on purpose so a single 
 case is a warning, not a red build. A drop across nights is the signal to look for, which
 is why the report keeps per-case, per-trial results with notes.
 
-Reports: [`reports/evals/fake-model.md`](reports/evals/fake-model.md) (16/16) and
-[`reports/evals/gemini-3.8-flash.md`](reports/evals/gemini-3.8-flash.md) (live run, see
-the file for the numbers). The JSON next to each holds every trial's scorecard, draft and
-notes.
+**Results.** [`reports/evals/fake-model.md`](reports/evals/fake-model.md): 16 of 16
+cases. [`reports/evals/gemini-3.8-flash.md`](reports/evals/gemini-3.8-flash.md): 13 of 13
+live cases, 3 trials each, 132 criterion checks passed out of 132, judge average 4.96 of
+5 across 24 drafts, 14 minutes and 189k tokens for the run. The JSON next to each report
+holds every trial's scorecard, draft and notes. One detail worth reading in the live
+report: for the out-of-date profile Gemini lowered confidence on its own, quoted real
+text for every score, and also flagged a location mismatch nobody asked it about.
 
 ## Diagnostics
 
@@ -302,7 +305,7 @@ notes.
   cannot tell a fair 3/5 from an unfair one, or a warm message from a stiff one.
 - One live run on one day is a snapshot. Three trials is enough to catch a case that
   fails most of the time, not one that fails one time in ten.
-- Screenings run inside the HTTP request. Fine for one recruiter and a ten-second task,
+- Screenings run inside the HTTP request. Fine for one recruiter and a half-minute task,
   not for a queue of a hundred.
 - API keys identify a role, not a person. The audit log says "recruiter", not who.
 - No rate limits, no request size limits beyond the message field, no CORS setup beyond
