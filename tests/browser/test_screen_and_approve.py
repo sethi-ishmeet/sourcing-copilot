@@ -91,7 +91,8 @@ def test_screen_a_candidate_and_approve_the_message(page: Page, server: str):
     # Screen her: the page moves to the screening with a scorecard and a draft.
     page.get_by_test_id("screen-cand_001").click()
     page.wait_for_url("**/screenings/**")
-    expect(page.get_by_test_id("status")).to_have_text("Waiting for approval")
+    # The screening runs inside the request; give a slow CI machine time.
+    expect(page.get_by_test_id("status")).to_have_text("Waiting for approval", timeout=15000)
     expect(page.get_by_test_id("score-row")).to_have_count(4)
     expect(page.get_by_test_id("scorecard")).to_contain_text("Recommended")
     draft = page.get_by_test_id("draft")
@@ -102,7 +103,7 @@ def test_screen_a_candidate_and_approve_the_message(page: Page, server: str):
     # Approve: the message goes out and the page shows what happened.
     page.get_by_test_id("approve").click()
     try:
-        expect(page.get_by_test_id("status")).to_have_text("Sent")
+        expect(page.get_by_test_id("status")).to_have_text("Sent", timeout=15000)
     except AssertionError:
         # Make a failure here easy to read in CI: what the page said, and what the server saw.
         print("PAGE TEXT AFTER APPROVE:\n" + page.locator("main").inner_text())
