@@ -1,0 +1,31 @@
+[
+  {
+    "id": "role_backend_sr",
+    "title": "Senior Backend Engineer",
+    "company": "Acme Health",
+    "location": "Toronto, Canada (hybrid)",
+    "description": "Own the APIs behind Acme Health's patient scheduling product. Python services on GCP, PostgreSQL, a small team that ships weekly.",
+    "requirements": [
+      {"id": "python_backend", "text": "5+ years building backend services in Python", "must_have": true, "keywords": ["python", "fastapi", "django", "flask"]},
+      {"id": "cloud", "text": "Production experience on GCP or AWS", "must_have": true, "keywords": ["gcp", "google cloud", "aws", "amazon web services"]},
+      {"id": "postgres", "text": "PostgreSQL schema design and query tuning", "must_have": false, "keywords": ["postgresql", "postgres"]},
+      {"id": "regulated", "text": "Experience in healthcare or another regulated industry", "must_have": false, "keywords": ["healthcare", "health", "hospital", "clinic", "bank", "insurance", "hipaa", "phipa"]}
+    ],
+    "outreach": {"sender_name": "Sam", "sender_title": "Talent Partner at Acme Health", "max_chars": 300},
+    "shortlist": ["cand_001", "cand_002", "cand_003", "cand_004", "cand_005", "cand_007", "cand_008", "cand_009"]
+  },
+  {
+    "id": "role_ml_platform",
+    "title": "ML Platform Engineer",
+    "company": "Acme Health",
+    "location": "Remote, Canada",
+    "description": "Build and run the training and serving pipelines for Acme Health's risk models. Kubernetes, Python, a lot of GPUs.",
+    "requirements": [
+      {"id": "ml_pipelines", "text": "Built and operated ML training or serving pipelines", "must_have": true, "keywords": ["kubeflow", "mlflow", "serving", "training pipeline", "vertex", "sagemaker", "model"]},
+      {"id": "kubernetes", "text": "Kubernetes in production", "must_have": true, "keywords": ["kubernetes", "k8s", "gke", "eks"]},
+      {"id": "python", "text": "Comfortable in Python", "must_have": false, "keywords": ["python"]}
+    ],
+    "outreach": {"sender_name": "Sam", "sender_title": "Talent Partner at Acme Health", "max_chars": 300},
+    "shortlist": ["cand_006", "cand_010", "cand_001", "cand_002"]
+  }
+]

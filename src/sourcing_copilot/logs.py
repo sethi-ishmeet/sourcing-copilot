@@ -41,5 +41,5 @@ def setup_logging(level: str = "INFO") -> None:
 
 
 def log_event(logger: logging.Logger, event: str, level: int = logging.INFO, **fields: Any) -> None:
-    """Log `event` with structured fields. Example: log_event(log, "step_done", run_id=..., ms=12)."""
+    """Log `event` with structured fields, e.g. log_event(log, "step_done", run_id=..., ms=12)."""
     logger.log(level, event, extra={"fields": fields})
