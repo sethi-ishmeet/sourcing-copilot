@@ -65,7 +65,9 @@ jobs:
           name: frontend-dist
           path: frontend/dist
       - run: uv run playwright install --with-deps chromium
-      - run: uv run pytest -m browser
+      - run: >-
+          uv run pytest -m browser --screenshot only-on-failure --tracing retain-on-failure
+          --output reports/browser/on-failure
       - uses: actions/upload-artifact@v4
         if: always()
         with:

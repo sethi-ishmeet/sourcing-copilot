@@ -42,6 +42,8 @@ def server(tmp_path_factory):
         "DB_PATH": str(tmp_path_factory.mktemp("db") / "browser.sqlite"),
         "LOG_LEVEL": "WARNING",
     }
+    SCREENSHOTS.mkdir(parents=True, exist_ok=True)
+    server_log = (SCREENSHOTS / "server.log").open("w")
     proc = subprocess.Popen(
         [
             sys.executable,
@@ -52,11 +54,11 @@ def server(tmp_path_factory):
             "--port",
             str(port),
             "--log-level",
-            "warning",
+            "info",
         ],
         cwd=REPO_ROOT,
         env=env,
-        stdout=subprocess.PIPE,
+        stdout=server_log,
         stderr=subprocess.STDOUT,
         text=True,
     )
@@ -70,15 +72,14 @@ def server(tmp_path_factory):
             time.sleep(0.25)
     else:
         proc.terminate()
-        pytest.fail(f"server did not start:\n{proc.stdout.read() if proc.stdout else ''}")
+        pytest.fail(f"server did not start; see {SCREENSHOTS / 'server.log'}")
     yield base
     proc.terminate()
     proc.wait(timeout=10)
+    server_log.close()
 
 
 def test_screen_a_candidate_and_approve_the_message(page: Page, server: str):
-    SCREENSHOTS.mkdir(parents=True, exist_ok=True)
-
     # The role page lists the shortlist with computed facts.
     page.goto(server)
     expect(page.get_by_role("heading", level=1)).to_contain_text("Senior Backend Engineer")
@@ -100,7 +101,13 @@ def test_screen_a_candidate_and_approve_the_message(page: Page, server: str):
 
     # Approve: the message goes out and the page shows what happened.
     page.get_by_test_id("approve").click()
-    expect(page.get_by_test_id("status")).to_have_text("Sent")
+    try:
+        expect(page.get_by_test_id("status")).to_have_text("Sent")
+    except AssertionError:
+        # Make a failure here easy to read in CI: what the page said, and what the server saw.
+        print("PAGE TEXT AFTER APPROVE:\n" + page.locator("main").inner_text())
+        print("SERVER LOG:\n" + (SCREENSHOTS / "server.log").read_text())
+        raise
     expect(page.get_by_test_id("final-message")).to_contain_text("Acme Health")
     expect(page.get_by_test_id("steps")).to_contain_text("send")
     expect(page.get_by_test_id("audit")).to_contain_text("approved")
