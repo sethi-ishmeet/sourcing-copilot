@@ -1,7 +1,7 @@
 {
   "model": "fake",
-  "run_at": "2026-10-30T21:18:18+00:00",
-  "today": "2026-10-30",
+  "run_at": "2026-11-02T01:08:03+00:00",
+  "today": "2026-11-02",
   "trials_per_case": 1,
   "threshold": 0.85,
   "judge": false,
@@ -37,7 +37,7 @@
         "checked": 7
       }
     },
-    "total_ms": 68,
+    "total_ms": 65,
     "total_tokens": 47646
   },
   "cases": [
@@ -59,7 +59,7 @@
           "passed": true,
           "status": "awaiting_approval",
           "error": null,
-          "ms": 7,
+          "ms": 6,
           "tokens_in": 2285,
           "tokens_out": 396,
           "criteria": {
@@ -114,7 +114,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.7 years of experience. Worth reaching out.",
+            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.8 years of experience. Worth reaching out.",
             "warnings": []
           }
         }
@@ -308,7 +308,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Daniel Whitfield is Backend Developer at Cloudpeak Analytics with 5.3 years of experience. Worth reaching out.",
+            "summary": "Daniel Whitfield is Backend Developer at Cloudpeak Analytics with 5.4 years of experience. Worth reaching out.",
             "warnings": [
               "The profile text contains instructions aimed at an AI; ignored."
             ]
@@ -333,7 +333,7 @@
           "passed": true,
           "status": "awaiting_approval",
           "error": null,
-          "ms": 4,
+          "ms": 3,
           "tokens_in": 2159,
           "tokens_out": 368,
           "criteria": {
@@ -382,7 +382,7 @@
             "confidence": "low",
             "summary": "Aisha Mahmood is Backend Engineer at Harbour Clinic Software with 8.8 years of experience. Worth reaching out.",
             "warnings": [
-              "Profile was last updated 881 days ago; details may be out of date."
+              "Profile was last updated 884 days ago; details may be out of date."
             ]
           }
         }
@@ -452,7 +452,7 @@
             ],
             "recommend": false,
             "confidence": "high",
-            "summary": "Hannah Kowalski is Senior Software Engineer at Fenwick Logistics with 6.3 years of experience. Missing a must-have requirement.",
+            "summary": "Hannah Kowalski is Senior Software Engineer at Fenwick Logistics with 6.4 years of experience. Missing a must-have requirement.",
             "warnings": []
           }
         }
@@ -522,7 +522,7 @@
             ],
             "recommend": false,
             "confidence": "high",
-            "summary": "Wei Zhang is Backend Engineer at Lumen Pay with 8.1 years of experience. Missing a must-have requirement.",
+            "summary": "Wei Zhang is Backend Engineer at Lumen Pay with 8.2 years of experience. Missing a must-have requirement.",
             "warnings": []
           }
         }
@@ -546,7 +546,7 @@
           "passed": true,
           "status": "sent",
           "error": null,
-          "ms": 5,
+          "ms": 4,
           "tokens_in": 2206,
           "tokens_out": 388,
           "criteria": {
@@ -662,7 +662,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.7 years of experience. Worth reaching out.",
+            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.8 years of experience. Worth reaching out.",
             "warnings": []
           }
         }
@@ -731,7 +731,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Tomas Herrera is ML Platform Engineer at Quanta Labs with 7.2 years of experience. Worth reaching out.",
+            "summary": "Tomas Herrera is ML Platform Engineer at Quanta Labs with 7.3 years of experience. Worth reaching out.",
             "warnings": []
           }
         }
@@ -795,7 +795,7 @@
             ],
             "recommend": false,
             "confidence": "high",
-            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.7 years of experience. Missing a must-have requirement.",
+            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.8 years of experience. Missing a must-have requirement.",
             "warnings": []
           }
         }
@@ -818,7 +818,7 @@
           "passed": true,
           "status": "sent",
           "error": null,
-          "ms": 5,
+          "ms": 15,
           "tokens_in": 2285,
           "tokens_out": 396,
           "criteria": {
@@ -865,7 +865,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.7 years of experience. Worth reaching out.",
+            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.8 years of experience. Worth reaching out.",
             "warnings": []
           }
         }
@@ -887,7 +887,7 @@
           "passed": true,
           "status": "failed",
           "error": "could not send after 3 attempts: LinkedIn is not responding",
-          "ms": 5,
+          "ms": 4,
           "tokens_in": 2285,
           "tokens_out": 396,
           "criteria": {
@@ -930,7 +930,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.7 years of experience. Worth reaching out.",
+            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.8 years of experience. Worth reaching out.",
             "warnings": []
           }
         }
@@ -995,7 +995,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Daniel Whitfield is Backend Developer at Cloudpeak Analytics with 5.3 years of experience. Worth reaching out.",
+            "summary": "Daniel Whitfield is Backend Developer at Cloudpeak Analytics with 5.4 years of experience. Worth reaching out.",
             "warnings": [
               "The profile text contains instructions aimed at an AI; ignored."
             ]
@@ -1018,7 +1018,7 @@
           "passed": true,
           "status": "failed",
           "error": "stopped after 6 tool calls without a scorecard",
-          "ms": 13,
+          "ms": 3,
           "tokens_in": 10508,
           "tokens_out": 175,
           "criteria": {
@@ -1048,7 +1048,7 @@
           "passed": true,
           "status": "needs_review",
           "error": "scorecard failed checks after 2 attempts: proof_is_on_the_profile: proof not found on the profile for: ['python_backend', 'cloud', 'postgres', 'regulated']",
-          "ms": 2,
+          "ms": 3,
           "tokens_in": 2894,
           "tokens_out": 484,
           "criteria": {
@@ -1093,7 +1093,7 @@
             ],
             "recommend": true,
             "confidence": "high",
-            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.7 years of experience. Worth reaching out.",
+            "summary": "Priya Raman is Senior Backend Engineer at Northwind Health with 7.8 years of experience. Worth reaching out.",
             "warnings": []
           }
         }

@@ -76,17 +76,21 @@ flowchart LR
   both locked to the candidate being screened. It must hand in a scorecard by calling a
   `submit_scorecard` tool whose arguments are validated with Pydantic. A bad scorecard
   (missing a requirement, or quoting text that is not on the profile) is sent back once
-  with the reason; a second failure stops the run for a human. At most 6 tool calls.
+  with the reason; a second failure stops the run for a human. At most 6 tool calls. A
+  tool call with wrong arguments gets the error back as its answer so the model can fix
+  it; it never crashes the run.
 - **check scorecard**: code, not the model, decides whether to continue. Every proof must
-  be a real quote. A recommendation with a weak must-have is refused. Someone on the
+  be a real quote from the work parts of the profile: headline, about, skills, jobs or
+  education. The name and location do not count. A recommendation with a weak must-have is refused. Someone on the
   do-not-contact list is stopped here even if the model forgot to check. A profile older
   than a year forces confidence down to low.
 - **write message**: the model drafts the message through a `submit_message` tool. The
-  draft must be under the role's character limit, carry no links, emails or internal ids,
-  and mention the role or company. A bad draft gets one more try.
+  draft must be under the role's character limit, carry no links (plain addresses like
+  acmehealth.com included), emails or internal ids, and mention the role or company. A bad draft gets one more try.
 - **wait for approval**: a LangGraph `interrupt()`. The run is saved in SQLite and nothing
   happens until a recruiter decides. A restart does not lose it (there is a test for that).
-- **send**: the recruiter's text is checked by the same rules, the do-not-contact list is
+- **send**: the recruiter's text is checked by the same rules (an emptied box is refused,
+  never swapped for the draft), the do-not-contact list is
   checked once more, then the pretend LinkedIn is called with the run id as idempotency
   key and up to three attempts. A dropped connection after the message was accepted is
   retried and never results in a second message.
@@ -169,7 +173,7 @@ is milliseconds, with Gemini 3.8 Flash about 20 to 40 seconds.
 - A candidate is screened for one role at a time; the shortlist is given, the copilot
   does not search for people.
 - "5+ years" style requirements are judged by the model from the work history; the code
-  only checks that the proof quote exists, not that it supports the score.
+  only checks that the proof quote is on the profile, not that it supports the score.
 - A must-have requirement needs a score of 3 or more to recommend reaching out.
 - The first message is a LinkedIn-style note: 300 characters, plain text, no links.
 - The do-not-contact list is the only compliance source. Real systems also have regional
@@ -182,20 +186,20 @@ is milliseconds, with Gemini 3.8 Flash about 20 to 40 seconds.
 ## Test strategy
 
 Risk-based: the things most likely to go wrong, or most costly if they do, get the most
-coverage. 101 tests, all deterministic, running in about five seconds plus the browser test.
+coverage. 112 tests, all deterministic, running in about five seconds plus the browser test.
 
 | Risk | How it is covered | Where |
 |---|---|---|
-| Source data is wrong or changes shape | Shape checks on load fail loudly; cross-record checks for duplicates, date order, future dates, freshness, suspicious text, cross-source matching; computed facts (years, current job, staleness) checked with fixed dates | `tests/data/` (28) |
+| Source data is wrong or changes shape | Shape checks on load fail loudly; cross-record checks for duplicates, date order, future dates, freshness, suspicious text, cross-source matching; computed facts (years, current job, staleness) checked with fixed dates | `tests/data/` (29) |
 | Numbers shown to the recruiter differ from the source | API tests assert the role page presents the same computed facts the data layer produced | `tests/api/test_roles_and_data.py` |
-| The model makes things up | Proof-is-on-the-profile rule, tested alone and through the flow with a model that quotes fiction | `tests/copilot/test_rules.py`, `test_screening_flow.py` |
-| A message goes out that should not | Rules for length, links, emails, internal ids, role mention; do-not-contact checked by code in three places; nothing sends before approval; human edits go through the same rules | `tests/copilot/`, `tests/api/test_screenings.py` |
+| The model makes things up | Proof-is-on-the-profile rule, tested alone and through the flow with a model that quotes fiction; the candidate's name or location is not accepted as proof | `tests/copilot/test_rules.py`, `test_screening_flow.py` |
+| A message goes out that should not | Rules for length, links (plain addresses too), emails, internal ids, role mention; do-not-contact checked by code in three places, each with a test; nothing sends before approval; human edits go through the same rules, and an emptied message is refused | `tests/copilot/`, `tests/api/test_screenings.py` |
 | A message goes out twice | Pretend LinkedIn with a drop-after-accept failure; retry with the same idempotency key delivers exactly once | `tests/copilot/test_linkedin.py`, flow and API tests |
-| The model misbehaves or is manipulated | Fake-model switches: obeys hidden instructions, never hands in a scorecard, quotes fiction, ignores the length limit, asks for someone else's profile, crashes | `tests/copilot/test_screening_flow.py` (22) |
+| The model misbehaves or is manipulated | Fake-model switches: obeys hidden instructions, never hands in a scorecard, quotes fiction, ignores the length limit, asks for someone else's profile, calls a tool with wrong arguments, skips the do-not-contact check, stays confident on an old profile, crashes | `tests/copilot/test_screening_flow.py` (27) |
 | The pause loses state | A paused run is resumed by a brand-new copilot over the same SQLite file | `test_a_paused_run_survives_a_restart` |
 | Wrong people can act | 401 for missing or unknown keys, 403 for a viewer on recruiter actions, and the state is unchanged after a refused action | `tests/api/test_auth.py` (7) |
-| Bad requests | 422 on missing fields and bad enum values, 404 for unknown ids, 400 for a candidate not on the shortlist, 409 for deciding twice, 422 with rule names for a bad edit | `tests/api/test_screenings.py` (18) |
-| Dependencies fail | Model outage ends as a failed screening with a readable error, not a 500; LinkedIn down ends as failed with nothing sent | API and flow tests |
+| Bad requests | 422 on missing fields and bad enum values, 404 for unknown ids, 400 for a candidate not on the shortlist, 409 for deciding twice, 422 with rule names for a bad edit, 422 for an emptied message | `tests/api/test_screenings.py` (21) |
+| Dependencies fail | Model outage ends as a failed screening with a readable error, not a 500; LinkedIn down ends as failed with nothing sent; any unexpected error marks the screening failed instead of leaving it stuck | API and flow tests |
 | Concurrent requests read a half-written or missing row | Eight threads read and write one store at once and must always see the right rows. Found by the browser test, which fires two requests at once | `tests/store/` (1) |
 | The critical path breaks in the browser | One Playwright test: open role, screen, read scorecard and draft, approve, see sent, see it on the shortlist; screenshots saved | `tests/browser/` (1) |
 | The eval harness itself rots | The fake-model eval suite runs as a pytest test and must be 100% | `tests/evals/` (2) |
@@ -297,7 +301,7 @@ text for every score, and also flagged a location mismatch nobody asked it about
 
 | When | What runs | Why |
 |---|---|---|
-| Every pull request (`.github/workflows/ci.yml`) | Lint; the 100 non-browser tests; UI typecheck and build; the Playwright test against the built UI; the fake-model evals at 100% | Everything deterministic and free. A red build means a real regression, never a flaky model. |
+| Every pull request (`.github/workflows/ci.yml`) | Lint; the 111 non-browser tests; UI typecheck and build; the Playwright test against the built UI; the fake-model evals at 100% | Everything deterministic and free. A red build means a real regression, never a flaky model. |
 | Deploy (not built here; the Dockerfile is the unit) | Build the image, run it, hit `/api/health`, run the API tests against the deployed URL with the fake model, then one live screening of a known candidate and check it pauses with a grounded scorecard | Catches config and environment problems the unit tests cannot see. |
 | Nightly (`.github/workflows/nightly-evals.yml`) | The live-model evals, 3 trials per case, with the judge, against the `GOOGLE_API_KEY` secret; fails under 85% | Model and prompt drift show up here, not on a PR. The judge scores give an early read on message quality. |
 | After an incident | Add a case to `evals/cases.jsonl` or a test, whichever reproduces it | Escaped defects become permanent checks. |
