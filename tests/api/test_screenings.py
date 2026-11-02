@@ -154,6 +154,20 @@ def test_edited_message_that_breaks_a_rule_is_422_and_the_run_keeps_waiting(clie
     )
 
 
+def test_approving_an_emptied_message_is_422_and_the_run_keeps_waiting(client):
+    run_id = start_screening(client, "cand_001").json()["run_id"]
+    response = client.post(
+        f"/api/screenings/{run_id}/decision",
+        json={"action": "approve", "message": "   "},
+        headers=RECRUITER,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"]["message"] == "the edited message is empty"
+    assert client.get(f"/api/screenings/{run_id}", headers=VIEWER).json()["status"] == (
+        "awaiting_approval"
+    )
+
+
 def test_deciding_twice_is_409(client):
     run_id = start_screening(client, "cand_001").json()["run_id"]
     client.post(f"/api/screenings/{run_id}/decision", json={"action": "reject"}, headers=RECRUITER)
@@ -182,6 +196,26 @@ def test_model_outage_shows_up_as_a_failed_screening_not_a_500(make_client):
     body = response.json()
     assert body["status"] == "failed"
     assert "model call failed twice" in body["error"]
+
+
+def test_bad_tool_arguments_from_the_model_are_not_a_500(make_client):
+    response = start_screening(make_client(behaviour="bad_tool_arguments"), "cand_001")
+    assert response.status_code == 201
+    assert response.json()["status"] == "awaiting_approval"
+
+
+def test_an_unexpected_crash_marks_the_screening_failed_instead_of_stuck(client, monkeypatch):
+    def crash(*args, **kwargs):
+        raise RuntimeError("something nobody planned for")
+
+    monkeypatch.setattr(client.app.state.copilot, "start", crash)
+    response = start_screening(client, "cand_001")
+    assert response.status_code == 201
+    body = response.json()
+    assert body["status"] == "failed"
+    assert body["error"] == "unexpected error: something nobody planned for"
+    saved = client.get(f"/api/screenings/{body['run_id']}", headers=VIEWER).json()
+    assert saved["status"] == "failed"
 
 
 def test_send_that_fails_once_still_ends_as_sent_once(make_client):

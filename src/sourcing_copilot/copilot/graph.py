@@ -57,6 +57,14 @@ def _now_iso() -> str:
     return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
+def _describe_error(err: Exception) -> str:
+    """One short line the model can act on, e.g. "candidate_id: Field required"."""
+    if isinstance(err, ValidationError):
+        first = err.errors()[0]
+        return f"{'.'.join(str(p) for p in first['loc'])}: {first['msg']}"
+    return str(err).splitlines()[0] if str(err) else type(err).__name__
+
+
 class Copilot:
     def __init__(
         self,
@@ -471,15 +479,17 @@ class Copilot:
                 f"decision must be approve or reject, got {decision['action']!r}",
                 {"decision": decision},
             )
-        edited = (decision.get("message") or "").strip()
-        final = edited or state["draft_message"]
+        # No message means "send the draft". A blank message is kept as blank, so `send`
+        # refuses it on the length rule instead of quietly sending the draft.
+        edited = decision["message"].strip() if isinstance(decision["message"], str) else None
+        final = state["draft_message"] if edited is None else edited
         step = self._step(
             state["run_id"],
             "wait for approval",
             {
                 "action": decision["action"],
                 "decided_by": decision["decided_by"],
-                "edited": bool(edited) and edited != state["draft_message"],
+                "edited": edited is not None and edited != state["draft_message"],
             },
         )
         if decision["action"] == "approve":
@@ -636,12 +646,20 @@ class Copilot:
 
     @staticmethod
     def _run_tool(run_id, lookup, call) -> tuple[str, StepRecord]:
+        """Run one tool call. A bad call (unknown tool, wrong or missing arguments) never
+        crashes the run: the error goes back to the model as the tool's answer, so it can
+        correct itself, and the call still counts towards the tool-call cap."""
         started = time.perf_counter()
         tool = lookup.get(call["name"])
         if tool is None:
             result = json.dumps({"error": f"unknown tool {call['name']}"})
         else:
-            result = tool.invoke(call["args"])
+            try:
+                result = tool.invoke(call["args"])
+            except Exception as err:  # noqa: BLE001 - any bad call is handed back the same way
+                result = json.dumps(
+                    {"error": f"bad arguments for {call['name']}: {_describe_error(err)}"}
+                )
         payload = json.loads(result)
         step = Copilot._step(
             run_id,

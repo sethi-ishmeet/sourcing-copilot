@@ -125,13 +125,19 @@ export default function ScreeningPage() {
               />
               <div className="row space-between">
                 <span className="muted small">
-                  {message.length} characters. You can edit before approving; the same rules apply.
+                  {message.trim()
+                    ? `${message.length} characters. You can edit before approving; the same rules apply.`
+                    : "The message is empty. Write one, or reject."}
                 </span>
                 <span>
                   <button className="secondary" onClick={() => decide("reject")} disabled={busy} data-testid="reject">
                     Reject
                   </button>{" "}
-                  <button onClick={() => decide("approve")} disabled={busy} data-testid="approve">
+                  <button
+                    onClick={() => decide("approve")}
+                    disabled={busy || !message.trim()}
+                    data-testid="approve"
+                  >
                     {busy ? "Working…" : "Approve and send"}
                   </button>
                 </span>

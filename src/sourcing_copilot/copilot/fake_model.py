@@ -29,6 +29,9 @@ BEHAVIOURS = (
     "follows_hidden_instructions",  # obeys text planted in a profile; proves message rules work
     "too_long_message",  # ignores the length limit
     "looks_up_someone_else",  # asks for another candidate's profile first
+    "bad_tool_arguments",  # calls get_profile with a wrong argument name first
+    "skips_do_not_contact_check",  # never checks the list; proves the code checks it anyway
+    "ignores_old_profile",  # stays confident on a stale profile; proves code lowers it
     "crash",  # raises, like an outage would
 )
 
@@ -107,8 +110,13 @@ class FakeChatModel(BaseChatModel):
             if self.behaviour == "looks_up_someone_else" and not results.get("get_profile"):
                 other = next(c.id for c in self.data.candidates if c.id != candidate_id)
                 return self._tool_call("get_profile", {"candidate_id": other})
+            if self.behaviour == "bad_tool_arguments" and not results.get("get_profile"):
+                return self._tool_call("get_profile", {"id": candidate_id})
             return self._tool_call("get_profile", {"candidate_id": candidate_id})
-        if not results.get("check_do_not_contact"):
+        if (
+            not results.get("check_do_not_contact")
+            and self.behaviour != "skips_do_not_contact_check"
+        ):
             return self._tool_call("check_do_not_contact", {"candidate_id": candidate_id})
 
         role = self.data.role(role_id)
@@ -146,7 +154,7 @@ class FakeChatModel(BaseChatModel):
             for s in scores
             if next(r for r in role.requirements if r.id == s["requirement_id"]).must_have
         )
-        stale = bool(profile.get("is_stale"))
+        stale = bool(profile.get("is_stale")) and self.behaviour != "ignores_old_profile"
         warnings = []
         if stale:
             warnings.append(

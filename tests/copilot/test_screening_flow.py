@@ -76,6 +76,19 @@ def test_edit_then_approve_sends_the_edited_text(make_copilot):
     assert wait_step["details"]["edited"] is True
 
 
+def test_an_emptied_message_is_not_swapped_for_the_draft(make_copilot):
+    # Clearing the box and approving must not quietly send the model's draft.
+    linkedin = PretendLinkedIn()
+    copilot = make_copilot(linkedin=linkedin)
+    copilot.start("run_1", ROLE, "cand_001")
+    state = copilot.decide("run_1", "approve", decided_by="recruiter", message="   ")
+
+    assert state["status"] == "needs_review"
+    assert "message_length" in state["error"]
+    assert state["final_message"] == ""
+    assert linkedin.sent_count == 0
+
+
 def test_reject_sends_nothing(make_copilot):
     linkedin = PretendLinkedIn()
     copilot = make_copilot(linkedin=linkedin)
@@ -219,6 +232,60 @@ def test_model_cannot_read_another_candidates_profile(make_copilot):
     assert "not allowed" in first_lookup["details"]["output"]["error"]
     assert state["profile"]["id"] == "cand_001"
     assert state["status"] == "awaiting_approval"
+
+
+def test_bad_tool_arguments_go_back_to_the_model_and_the_run_carries_on(make_copilot):
+    state = make_copilot(behaviour="bad_tool_arguments").start("run_1", ROLE, "cand_001")
+    first_lookup = next(s for s in state["steps"] if s["name"] == "tool: get_profile")
+    assert first_lookup["status"] == "error"
+    assert first_lookup["details"]["output"]["error"] == (
+        "bad arguments for get_profile: candidate_id: Field required"
+    )
+    assert state["tool_calls_made"] == 3  # the bad call still counts towards the cap
+    assert state["status"] == "awaiting_approval"
+
+
+# -- backstops: code that holds even when the model skips a step ----------------------
+
+
+def test_do_not_contact_holds_even_if_the_model_never_checks_the_list(make_copilot):
+    linkedin = PretendLinkedIn()
+    copilot = make_copilot(behaviour="skips_do_not_contact_check", linkedin=linkedin)
+    state = copilot.start("run_1", ROLE, "cand_003")
+
+    assert "tool: check_do_not_contact" not in step_names(state)
+    assert state["status"] == "do_not_contact"
+    assert state["contact_allowed"] is False
+    assert "Asked us not to contact them again" in state["error"]
+    assert state["draft_message"] is None
+    assert not copilot.is_waiting("run_1")
+    assert linkedin.sent_count == 0
+
+
+def test_old_profile_gets_low_confidence_even_if_the_model_is_sure(make_copilot):
+    state = make_copilot(behaviour="ignores_old_profile").start("run_1", ROLE, "cand_005")
+    assert state["status"] == "awaiting_approval"
+    assert state["scorecard"]["confidence"] == "low"
+    assert (
+        "Confidence lowered to low because the profile is over a year old."
+        in state["data_warnings"]
+    )
+
+
+def test_send_refuses_someone_on_the_do_not_contact_list(make_copilot):
+    # The last check, for a run resumed some other way than through the API.
+    linkedin = PretendLinkedIn()
+    copilot = make_copilot(linkedin=linkedin)
+    out = copilot.send(
+        {
+            "run_id": "run_1",
+            "role_id": ROLE,
+            "candidate_id": "cand_003",
+            "final_message": "Hi Elena, Sam at Acme Health here. Open to a quick chat?",
+        }
+    )
+    assert out["status"] == "do_not_contact"
+    assert linkedin.sent_count == 0
 
 
 # -- durability -----------------------------------------------------------------------

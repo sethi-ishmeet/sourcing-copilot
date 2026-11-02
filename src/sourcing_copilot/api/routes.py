@@ -4,6 +4,7 @@ shape the answer. Anything clever lives in the copilot or the data package."""
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -185,7 +186,9 @@ def start_screening(
         by=user.name,
     )
 
-    state = app.state.copilot.start(run_id, role.id, candidate.id)
+    state = _run_copilot(
+        request, run_id, lambda: app.state.copilot.start(run_id, role.id, candidate.id)
+    )
     store.save_state(run_id, state)
     store.add_audit(run_id, "copilot", state["status"], state.get("error") or "")
     return _screening_response(request, run_id)
@@ -209,7 +212,9 @@ def decide(
             detail=f"this screening is not waiting for approval (status: {screening['status']})",
         )
 
-    edited = (body.message or "").strip() or None
+    # No message means "send the draft as it is". A message that is there but blank means
+    # the recruiter cleared the box; that is refused, never quietly swapped for the draft.
+    edited = body.message.strip() if body.message is not None else None
     if body.action == "approve" and edited is not None:
         role = app.state.data.role(screening["role_id"])
         failed = rules.failed(rules.check_message(edited, role))
@@ -217,14 +222,20 @@ def decide(
             raise HTTPException(
                 status_code=422,
                 detail={
-                    "message": "the edited message breaks a rule",
+                    "message": "the edited message is empty"
+                    if not edited
+                    else "the edited message breaks a rule",
                     "rules": [r.model_dump() for r in failed],
                 },
             )
 
     detail = "edited the draft" if edited and edited != screening["draft_message"] else ""
     store.add_audit(run_id, user.name, f"{body.action}d", detail)
-    state = app.state.copilot.decide(run_id, body.action, decided_by=user.name, message=edited)
+    state = _run_copilot(
+        request,
+        run_id,
+        lambda: app.state.copilot.decide(run_id, body.action, decided_by=user.name, message=edited),
+    )
     store.save_state(run_id, state)
     if state["status"] == "sent":
         store.add_audit(
@@ -244,6 +255,21 @@ def decide(
 
 
 # -- helpers ------------------------------------------------------------------------------
+
+
+def _run_copilot(request: Request, run_id: str, run: Callable[[], dict]) -> dict[str, Any]:
+    """Run the copilot. The copilot handles the failures we expect itself; this catches
+    anything else so a screening is marked failed with the reason instead of being left
+    stuck at "screening" behind a server error."""
+    try:
+        return run()
+    except Exception as err:  # noqa: BLE001 - whatever went wrong, record it on the screening
+        log_event(log, "copilot_crashed", logging.ERROR, run_id=run_id, error=repr(err))
+        try:
+            state = dict(request.app.state.copilot.state(run_id))
+        except Exception:  # noqa: BLE001 - the saved state may be unreadable too
+            state = {}
+        return {**state, "status": "failed", "error": f"unexpected error: {err}"}
 
 
 def _screening_response(request: Request, run_id: str) -> dict[str, Any]:
