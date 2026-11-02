@@ -12,11 +12,16 @@ import socket
 import subprocess
 import sys
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
 import pytest
 from playwright.sync_api import Page, expect
+
+from sourcing_copilot.config import load_settings
+from sourcing_copilot.data.load import load_sample_data
+from sourcing_copilot.data.profile import years_of_experience
 
 pytestmark = pytest.mark.browser
 
@@ -79,13 +84,21 @@ def server(tmp_path_factory):
     server_log.close()
 
 
+def _priya_years_today() -> str:
+    """The server counts years of experience up to today's real date, so the test works
+    out the expected number the same way instead of hard-coding one that goes stale."""
+    data = load_sample_data(load_settings().sample_data_dir)
+    years = years_of_experience(data.candidate("cand_001"), datetime.now(UTC).date())
+    return f"{years:g}"  # the page shows 8.0 as "8", like JavaScript does
+
+
 def test_screen_a_candidate_and_approve_the_message(page: Page, server: str):
     # The role page lists the shortlist with computed facts.
     page.goto(server)
     expect(page.get_by_role("heading", level=1)).to_contain_text("Senior Backend Engineer")
     row = page.get_by_test_id("candidate-cand_001")
     expect(row).to_contain_text("Priya Raman")
-    expect(row).to_contain_text("7.7")
+    expect(row).to_contain_text(_priya_years_today())
     expect(row).to_contain_text("not screened")
 
     # Screen her: the page moves to the screening with a scorecard and a draft.
