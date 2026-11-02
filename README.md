@@ -347,8 +347,8 @@ Quality:
 
 ## How I built this
 
-About a working day, including this document. I used Claude Code as a pair programmer
-throughout: I set the scenario, scope and design, and reviewed every file. The things I
-would defend most are the ones I would have done the same way by hand: the model never
-gets a send tool, proof is a string match, the same rules apply to humans, and the fake
-model exists so the pipeline is tested on every pull request without an API key.
+I used Claude Code as a pair programmer throughout: I set the scenario, scope and design,
+and reviewed every file. The things I would defend most are the ones I would have done the
+same way by hand: the model never gets a send tool, proof is a string match, the same rules
+apply to humans, and the fake model exists so the pipeline is tested on every pull request
+without an API key.
