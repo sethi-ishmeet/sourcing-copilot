@@ -15,6 +15,12 @@ MUST_HAVE_MIN_SCORE = 3
 MIN_MESSAGE_CHARS = 20
 
 LINK_OR_EMAIL = re.compile(r"(https?://|www\.|[\w.+-]+@[\w-]+\.[\w.]+)", re.I)
+# Plain web addresses such as "acmehealth.com/jobs/42". The ending must be lowercase, so
+# names like "ASP.NET" are not mistaken for links ("Node.js" has no web ending at all).
+PLAIN_WEB_ADDRESS = re.compile(
+    r"\b[A-Za-z0-9][\w-]*(?:\.[\w-]+)*\."
+    r"(?:com|org|net|io|ai|co|dev|app|jobs|ca|uk|info|biz|xyz|ly)\b"
+)
 INTERNAL_ID = re.compile(r"\b(cand|role|run|msg)_[A-Za-z0-9]+\b")
 
 
@@ -74,7 +80,7 @@ def check_message(message: str, role: Role) -> list[RuleResult]:
         ),
         RuleResult(
             rule="no_links_or_emails",
-            passed=LINK_OR_EMAIL.search(text) is None,
+            passed=LINK_OR_EMAIL.search(text) is None and PLAIN_WEB_ADDRESS.search(text) is None,
             detail="links and email addresses are not allowed in a first message",
         ),
         RuleResult(

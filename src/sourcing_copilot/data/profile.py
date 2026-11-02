@@ -52,8 +52,10 @@ def is_stale(candidate: Candidate, today: date) -> bool:
 
 
 def profile_text(candidate: Candidate) -> str:
-    """Every piece of text on the profile, one item per line. Used for proof checks."""
-    lines = [candidate.full_name, candidate.headline, candidate.location, candidate.about]
+    """The parts of the profile that describe the person's work, one item per line: headline,
+    about, skills, jobs and education. Used for proof checks. The name and location are left
+    out on purpose: they are on every profile, so quoting them proves nothing."""
+    lines = [candidate.headline, candidate.about]
     lines.extend(candidate.skills)
     for job in candidate.experience:
         lines.append(f"{job.title} at {job.company}")

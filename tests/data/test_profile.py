@@ -71,6 +71,14 @@ def test_quote_check_rejects_text_that_is_not_on_the_profile(sample_data):
     assert not quote_is_in_profile("a", priya)
 
 
+def test_name_and_location_are_not_proof(sample_data):
+    # They are on every profile, so quoting them proves nothing about a requirement.
+    marcus = sample_data.candidate("cand_002")
+    assert not quote_is_in_profile("Marcus Oyelaran", marcus)
+    assert not quote_is_in_profile("Hamilton, Canada", marcus)
+    assert quote_is_in_profile("Frontend Developer at Brightline Studio", marcus)  # headline
+
+
 def test_do_not_contact_matches_by_url_ignoring_case_and_trailing_slash():
     cand = make_candidate(linkedin_url="https://www.linkedin.com/in/Test-Person-Sample/")
     entry = DoNotContactEntry(
